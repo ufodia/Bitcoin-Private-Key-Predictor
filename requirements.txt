@@ -1,0 +1,5 @@
+
+tensorflow>=2.9.0
+bit  # Library for handling Bitcoin addresses and keys
+numpy>=1.21.0  # For numerical operations
+pandas>=1.3.0  # For data manipulation and analysis
