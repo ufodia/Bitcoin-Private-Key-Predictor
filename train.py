@@ -7,7 +7,7 @@ def train_model(file_name, train_data_length=10000, seed=1337):
     
     
     input_dim = 256
-    output_dim = 256
+    output_dim = 160
     first_layer_dim = 128
     hidden_layers = 20     
     hidden_dim = 512       
