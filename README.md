@@ -162,6 +162,9 @@ The predicted private key will appear in `predictions.txt`.
 
 Contributions are welcome! Please feel free to open issues for questions, ideas, or problems, and submit pull requests for enhancements.
 
+## Donate: 
+**BTC**: `1GZdNtQYa2DN4b3hLekrYErv9c8WLqbBTm`
+
 ---
 
 ## License
