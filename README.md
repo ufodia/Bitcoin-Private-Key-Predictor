@@ -170,3 +170,11 @@ Contributions are welcome! Please feel free to open issues for questions, ideas,
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+## Support this project
+
+<p align="center">
+  <a href="https://buymeacoffee.com/ufodia">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="60">
+  </a>
+</p>
