@@ -1,177 +1,65 @@
-
 # Bitcoin Private Key Predictor
 
-This project is a machine learning model built using TensorFlow to predict Bitcoin private keys based on public keys. Leveraging a neural network, the model attempts to map public keys to private keys across the 256-bit key space.
+A historical TensorFlow experiment exploring neural networks and Bitcoin-related key data.
 
-> **Disclaimer**: This project is intended solely for educational and research purposes. Predicting private keys associated with real Bitcoin addresses is computationally infeasible due to the immense key space, and this project does not aim to bypass security features of cryptographic systems.
+> [!WARNING]
+> **This project does not demonstrate recovery or prediction of Bitcoin private keys from public keys.** Standard Bitcoin private keys cannot be practically recovered this way. The repository name reflects the original experiment, not a proven capability. Do not use it for wallet recovery, security decisions, or funds.
 
-## Table of Contents
-- [Overview](#overview)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Example](#example)
-- [Contributing](#contributing)
-- [License](#license)
+## What the current code actually does
 
----
-
-## Overview
-
-This repository provides:
-- A **data generation script** for creating training data with random Bitcoin private and public key pairs.
-- A **training script** for building a deep learning model to predict private keys from public keys.
-- A **prediction script** to infer the private key of a given public key using the trained model.
-
----
+- `data_generator.py` samples integer secrets using Python's seeded `random` module, derives public keys, and returns the secrets and three 160-bit hash representations as arrays. These generated secrets are **not secure wallet keys**.
+- `train.py` takes the first two arrays returned by the generator: it feeds 256-bit secret representations as inputs and trains a 160-output model against uncompressed public-key hashes. This is the **opposite direction** from public-key-to-private-key prediction.
+- `predict.py` passes a truncated historical public-key hex string as a 256-bit input to that model, then writes formatted model output to `predictions.txt`. This input does not match the secret-key inputs used for training, and the model's 160 outputs are not established private-key predictions.
+- The code does not provide evidence that it can recover unseen private keys. Merely increasing the training data, changing layers, or running for more epochs does not establish such a capability.
 
 ## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/ufodia/Bitcoin-Private-Key-Predictor.git
-   cd Bitcoin-Private-Key-Predictor
-   ```
+Requires Python 3, TensorFlow, and the other packages listed in `requirements.txt`.
 
-2. **Set up a virtual environment (recommended):**
-   ```bash
-   python -m venv env
-   source env/bin/activate      # On Windows: env\Scripts\activate
-   ```
+```bash
+git clone https://github.com/ufodia/Bitcoin-Private-Key-Predictor.git
+cd Bitcoin-Private-Key-Predictor
+python -m venv env
+```
 
-3. **Install the dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+Activate the environment with `source env/bin/activate` on macOS/Linux or `env\Scripts\activate` on Windows, then:
 
-   Make sure TensorFlow is installed. For GPU support, additional steps may be required.
+```bash
+pip install -r requirements.txt
+```
 
----
+## Running the experiment
 
-## Usage
+`data_generator.py` exposes a data-generation function; running the file directly is not a documented standalone data-export step. `train.py` generates data in memory, trains the model, and attempts to save `prediction_model.keras`:
 
-### 1. Data Generation
-
-Generate training data by running `data_generator.py`. This will create random pairs of Bitcoin private and public keys within the 256-bit key space. The generated data will be used to train the model to map public keys to private keys.
-
-### 2. Model Training
-
-Train the model using `train.py`. This script loads the data, builds a neural network model, and trains it to predict private keys based on public keys. The trained model is saved as `prediction_model.keras`.
-
-Run the following command to start training:
 ```bash
 python train.py
 ```
 
-### 3. Prediction
+The historical settings specify 10,000 training samples and 5,000 epochs. Training can take substantial time and resources; compatibility and completion depend on your environment.
 
-To predict a private key from a public key, specify the target public key in `predict.py`. Then, run:
+After a compatible model file exists, the historical inference script can be run with:
 
 ```bash
 python predict.py
 ```
 
-The predicted private key is saved in `predictions.txt`.
+It writes `predictions.txt`. Treat its contents as experimental numeric model output, **not a recovered private key**. The hard-coded input is truncated by the script; changing it does not correct the training/inference mismatch.
 
----
+## Files
 
-## Project Structure
-
-- `data_generator.py` - Generates random private and public key pairs for training data.
-- `train.py` - Loads the data, trains the model, and saves the trained model.
-- `predict.py` - Uses the trained model to predict private keys from input public keys.
-- `model_utils.py` - Defines the model architecture and helper functions.
-- `data_processing.py` - Utility functions for converting and formatting data.
-
----
-
-## Configuration
-
-This project allows you to adjust various parameters to customize the model architecture and training data.
-
-### Model Architecture
-
-The model architecture in `train.py` defines the structure and complexity of the neural network. You can fine-tune the following parameters:
-
-- **Layers and Neurons**: 
-  - Adjusting the number of layers and neurons in each layer can affect the model's performance. For example:
-    ```python
-    first_layer_dim = 128  # Number of neurons in the first layer
-    hidden_layers = 20     # Total number of hidden layers
-    hidden_dim = 512       # Number of neurons in each hidden layer
-    ```
-
-- **Activation Functions**:
-  - The choice of activation function influences the model’s learning ability. The hidden layers commonly use `relu`, while the output layer may use `tanh` or `sigmoid`. In `train.py`:
-    ```python
-    from tensorflow.keras import layers
-    
-    # Model layers
-    model.add(layers.Dense(hidden_dim, activation='relu'))  # Hidden layer with ReLU activation
-    model.add(layers.Dense(output_dim, activation='tanh'))  # Output layer with Tanh activation
-    ```
-
-- **Loss Function**:
-  - The loss function determines how the model optimizes predictions. `mean_absolute_error` or `mean_squared_error` can be used to balance the model’s sensitivity to errors.
-    ```python
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    ```
-
-- **Batch Size and Epochs**:
-  - The number of epochs controls how long the model is trained, while batch size affects memory usage and speed. For example:
-    ```python
-    model.fit(x_train, y_train, epochs=3000, batch_size=512)
-    ```
-
-### Data Parameters
-
-Customizing the training data can enhance model accuracy by exposing it to a larger, more diverse dataset.
-
-- **Number of Key Pairs**:
-  - In `train.py`, you can control the number of key pairs generated by setting the `train_data_length`. A larger dataset can improve accuracy:
-    ```python
-    train_data_length = 10000  # Generate more training samples
-    ```
-
-- **Bit Length of Private Keys**:
-  - The `bits_secret` parameter in `data_generator.py` defines the bit length of private keys. Although set for the full 256-bit space by default, this can be adjusted for experimentation:
-    ```python
-    bits_secret = 256  # Default to 256-bit private keys
-    ```
-
----
-
-## Example
-
-After training, specify the target public key in `predict.py`, then use the model to predict the associated private key:
-
-```python
-# In predict.py
-target_pubkey_hex = "Your target public key in hex format"
-
-# Run the prediction
-python predict.py
-```
-
-The predicted private key will appear in `predictions.txt`.
-
----
+- `data_generator.py`: seeded experimental data generation.
+- `train.py`: training configuration and model fitting.
+- `predict.py`: historical inference example.
+- `model_utils.py` and `data_processing.py`: model and data helpers.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to open issues for questions, ideas, or problems, and submit pull requests for enhancements.
-
-## Donate: 
-**BTC**: `1GZdNtQYa2DN4b3hLekrYErv9c8WLqbBTm`
-
----
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+Questions, issue reports, and contributions that improve the experiment's clarity are welcome.
 
 ## Support this project
+
+**BTC**: `1GZdNtQYa2DN4b3hLekrYErv9c8WLqbBTm`
 
 <p align="center">
   <a href="https://buymeacoffee.com/ufodia">
